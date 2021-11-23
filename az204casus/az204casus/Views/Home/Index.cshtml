@@ -6,8 +6,8 @@
     <div class="text-center">
         <h1 class="display-4">Welcome</h1>
         <form asp-controller="Rsvp" asp-action="Submit" method="post">
-            <input asp-for="Voornaam" />
-            <input asp-for="Achternaam"/>
+            <input asp-for="Voornaam" placeholder="Voornaam"/>
+            <input asp-for="Achternaam" placeholder="Achternaam" />
 
             <button type="submit">Reserveren</button>
         </form>
