@@ -1,11 +1,8 @@
 ﻿using az204casus.Models;
+using Azure.Storage.Queues;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace az204casus.Controllers
 {
@@ -39,6 +36,10 @@ namespace az204casus.Controllers
         {
             _logger.LogInformation("Received RSVP for {voornaam} {achternaam}", model.Voornaam, model.Achternaam);
 
+            QueueClient queueClient = new QueueClient("DefaultEndpointsProtocol=https;AccountName=rsvpstorageaccount;AccountKey=JyZyWNsarrgCVX2UZ/gbNW842/4bB438WyAzkUjaijPY3KzbRxz2+I9fL+DzG0eILh1UtIEn1v8ZKNeQyV07Qg==;EndpointSuffix=core.windows.net", "reservations");
+            queueClient.CreateIfNotExists();
+
+            queueClient.SendMessage($"{model.Voornaam};{model.Achternaam}");
             return View();
         }
     }
