@@ -9,7 +9,7 @@ using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
+using Newtonsoft.Json;
 
 namespace RsvpWebApi.Controllers
 {
@@ -68,7 +68,7 @@ namespace RsvpWebApi.Controllers
                     "ReservationCreatedEvent",
                     "FunctionApp.ReservationCreatedEvent",
                     "1.0",
-                    JsonSerializer.Serialize(new ReservationCreatedEvent() { ReserverationId = id })
+                    JsonConvert.SerializeObject(new ReservationCreatedEvent() { ReserverationId = id })
                     )
                 );
         }
@@ -89,7 +89,7 @@ namespace RsvpWebApi.Controllers
                     "ImageCreatedEvent",
                     "FunctionApp.ImageCreatedEvent",
                     "1.0",
-                    JsonSerializer.Serialize(new ImageCreatedEvent() { Path = path })
+                    JsonConvert.SerializeObject(new ImageCreatedEvent() { Path = path })
                     )
                 );
         }
