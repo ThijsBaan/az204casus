@@ -1,11 +1,15 @@
-﻿using Azure.Storage.Blobs;
+﻿using Azure;
+using Azure.Messaging.EventGrid;
+using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 
 namespace RsvpWebApi.Controllers
 {
@@ -37,24 +41,62 @@ namespace RsvpWebApi.Controllers
 
             var connectionString = "DefaultEndpointsProtocol=https;AccountName=rsvpstorageaccount;AccountKey=JyZyWNsarrgCVX2UZ/gbNW842/4bB438WyAzkUjaijPY3KzbRxz2+I9fL+DzG0eILh1UtIEn1v8ZKNeQyV07Qg==;EndpointSuffix=core.windows.net";
 
-            QueueClient queueClient = new QueueClient(connectionString, "reservations");
-            queueClient.CreateIfNotExists();
-
             var naam = $"{rsvp.Voornaam};{rsvp.Achternaam}";
 
+            InsertReservation(rsvp, naam);
+            UploadImage(rsvp, connectionString, naam);
+        }
+
+        private static void InsertReservation(RsvpModel rsvp, string naam)
+        {
+            var db = new MongoService().GetClient().GetDatabase("maxenthijsmongo");
+            IMongoCollection<Reservation> reservations = db.GetCollection<Reservation>("Reservation");
+
+            String id = Guid.NewGuid().ToString();
+            reservations.InsertOne(new Reservation()
+            {
+                _id = id,
+                Firstname = rsvp.Voornaam,
+                Lastname = rsvp.Achternaam,
+                PhotoUrl = $"{naam}.jpg",
+                ThumbUrl = $"{naam}.jpg"
+            });
+
+            EventGridPublisherClient eventGridPublisherClient = CreateEventGridPublisherClient();
+            eventGridPublisherClient.SendEvent(
+                new EventGridEvent(
+                    "ReservationCreatedEvent",
+                    "FunctionApp.ReservationCreatedEvent",
+                    "1.0",
+                    JsonSerializer.Serialize(new ReservationCreatedEvent() { ReserverationId = id })
+                    )
+                );
+        }
+
+        private static void UploadImage(RsvpModel rsvp, string connectionString, string naam)
+        {
             BlobServiceClient blobClient = new BlobServiceClient(connectionString);
             var container = blobClient.GetBlobContainerClient("foto");
             container.CreateIfNotExists();
 
-            container.UploadBlob($"{naam}.jpg", rsvp.foto.OpenReadStream());
+            string path = $"{naam}.jpg";
 
-            queueClient.SendMessage(Base64Encode(naam));
+            container.UploadBlob(path, rsvp.foto.OpenReadStream());
+
+            EventGridPublisherClient eventGridPublisherClient = CreateEventGridPublisherClient();
+            eventGridPublisherClient.SendEvent(
+                new EventGridEvent(
+                    "ImageCreatedEvent",
+                    "FunctionApp.ImageCreatedEvent",
+                    "1.0",
+                    JsonSerializer.Serialize(new ImageCreatedEvent() { Path = path })
+                    )
+                );
         }
 
-        private static string Base64Encode(string plainText)
+        private static EventGridPublisherClient CreateEventGridPublisherClient()
         {
-            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
-            return System.Convert.ToBase64String(plainTextBytes);
+            return new EventGridPublisherClient(new Uri("https://rsvpeventgridtopic.westeurope-1.eventgrid.azure.net/api/events"), new AzureKeyCredential("FQVGeyvZMJdiOIVohtNYKtuNsga672u4ViOT2ry4nj0="));
         }
     }
 
@@ -84,10 +126,22 @@ namespace RsvpWebApi.Controllers
 
     public class Reservation
     {
-        public string Id { get; set; }
+        public string _id { get; set; }
         public string Firstname { get; set; }
         public string Lastname { get; set; }
         public string PhotoUrl { get; set; }
         public string ThumbUrl { get; set; }
     }
+
+
+    public class ImageCreatedEvent
+    {
+        public string Path { get; set; }
+    }
+
+    public class ReservationCreatedEvent
+    {
+        public string ReserverationId { get; set; }
+    }
+
 }

@@ -1,6 +1,9 @@
+using Azure.Messaging.EventGrid;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.EventGrid;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using System;
@@ -11,30 +14,23 @@ namespace FunctionApp
     {
         [FunctionName("StoreReserverations")]
         public static void Run(
-            [QueueTrigger("reservations", Connection = "STORAGE_CONNECTIONS_STRING")] string myQueueItem,
+            [EventGridTrigger] EventGridEvent e,
             ILogger log)
         {
-            log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
+            log.LogInformation($"C# Queue trigger function processed.");
 
-            var value = myQueueItem;
+            var value = e.Data.ToObjectFromJson<ReservationCreatedEvent>();
 
-            log.LogInformation($"Processed message: {value}");
-
+            log.LogInformation($"Processed event: {value}");
 
             var db = new MongoService().GetClient().GetDatabase("maxenthijsmongo");
             IMongoCollection<Reservation> reservations = db.GetCollection<Reservation>("Reservation");
 
-            reservations.InsertOne(new Reservation()
-            {
-                _id = Guid.NewGuid().ToString(),
-                Firstname = value.Split(";")[0],
-                Lastname = value.Split(";")[1],
-                PhotoUrl = $"{value}.jpg",
-                ThumbUrl = $"{value}.jpg"
-            });
+            var filter = Builders<Reservation>.Filter.Eq("_id", value.ReserverationId);
+            var update = Builders<Reservation>.Update.Set("Created", DateTime.UtcNow);
+            reservations.UpdateOneAsync(filter, update);
         }
     }
-
 
     public class MongoService
     {
@@ -50,6 +46,11 @@ namespace FunctionApp
         {
             return _client;
         }
+    }
+
+    public class ReservationCreatedEvent
+    {
+        public string ReserverationId { get; set; }
     }
 
     public class Reservation
