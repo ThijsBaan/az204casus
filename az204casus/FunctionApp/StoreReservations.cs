@@ -19,6 +19,8 @@ namespace FunctionApp
         {
             log.LogInformation($"C# Queue trigger function processed.");
 
+            log.LogInformation(e.Data.ToString());
+
             var value = e.Data.ToObjectFromJson<ReservationCreatedEvent>();
 
             log.LogInformation($"Processed event: {value}");

@@ -19,9 +19,9 @@ namespace FunctionApp
             [EventGridTrigger] EventGridEvent e, 
             ILogger log)
         {
+            log.LogInformation(e.Data.ToString());
 
             ImageCreatedEvent imageCreatedEvent = e.Data.ToObjectFromJson<ImageCreatedEvent>();
-
 
             var connectionString = "DefaultEndpointsProtocol=https;AccountName=rsvpstorageaccount;AccountKey=JyZyWNsarrgCVX2UZ/gbNW842/4bB438WyAzkUjaijPY3KzbRxz2+I9fL+DzG0eILh1UtIEn1v8ZKNeQyV07Qg==;EndpointSuffix=core.windows.net";
             BlobServiceClient bsc = new BlobServiceClient(connectionString);

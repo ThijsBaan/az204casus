@@ -52,7 +52,7 @@ namespace RsvpWebApi.Controllers
             var db = new MongoService().GetClient().GetDatabase("maxenthijsmongo");
             IMongoCollection<Reservation> reservations = db.GetCollection<Reservation>("Reservation");
 
-            String id = Guid.NewGuid().ToString();
+            string id = Guid.NewGuid().ToString();
             reservations.InsertOne(new Reservation()
             {
                 _id = id,
