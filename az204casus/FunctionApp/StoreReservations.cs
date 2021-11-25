@@ -21,7 +21,7 @@ namespace FunctionApp
 
             log.LogInformation(e.Data.ToString());
 
-            var value = e.Data.ToObjectFromJson<ReservationCreatedEvent>();
+            var value = JsonConvert.DeserializeObject<ReservationCreatedEvent>(e.Data.ToString());
 
             log.LogInformation($"Processed event: {value}");
 

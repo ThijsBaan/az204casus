@@ -6,6 +6,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.EventGrid;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
@@ -21,7 +22,7 @@ namespace FunctionApp
         {
             log.LogInformation(e.Data.ToString());
 
-            ImageCreatedEvent imageCreatedEvent = e.Data.ToObjectFromJson<ImageCreatedEvent>();
+            ImageCreatedEvent imageCreatedEvent = JsonConvert.DeserializeObject<ImageCreatedEvent>(e.Data.ToString());
 
             var connectionString = "DefaultEndpointsProtocol=https;AccountName=rsvpstorageaccount;AccountKey=JyZyWNsarrgCVX2UZ/gbNW842/4bB438WyAzkUjaijPY3KzbRxz2+I9fL+DzG0eILh1UtIEn1v8ZKNeQyV07Qg==;EndpointSuffix=core.windows.net";
             BlobServiceClient bsc = new BlobServiceClient(connectionString);
