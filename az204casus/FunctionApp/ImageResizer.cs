@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
+using MongoDB.Bson;
 
 namespace FunctionApp
 {
@@ -20,9 +21,9 @@ namespace FunctionApp
             [EventGridTrigger] EventGridEvent e, 
             ILogger log)
         {
-            log.LogInformation(e.Data.ToString());
+            log.LogInformation(e.Data.ToJson());
 
-            ImageCreatedEvent imageCreatedEvent = JsonConvert.DeserializeObject<ImageCreatedEvent>(e.Data.ToString());
+            ImageCreatedEvent imageCreatedEvent = JsonConvert.DeserializeObject<ImageCreatedEvent>(e.Data.ToJson());
 
             var connectionString = "DefaultEndpointsProtocol=https;AccountName=rsvpstorageaccount;AccountKey=JyZyWNsarrgCVX2UZ/gbNW842/4bB438WyAzkUjaijPY3KzbRxz2+I9fL+DzG0eILh1UtIEn1v8ZKNeQyV07Qg==;EndpointSuffix=core.windows.net";
             BlobServiceClient bsc = new BlobServiceClient(connectionString);
