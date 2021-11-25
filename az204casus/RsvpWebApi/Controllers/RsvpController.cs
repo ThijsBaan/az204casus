@@ -31,7 +31,7 @@ namespace RsvpWebApi.Controllers
         }
 
         [HttpPost]
-        public void Post([FromBody] RsvpModel rsvp)
+        public void Post([FromForm] RsvpModel rsvp)
         {
             _logger.LogInformation("Received RSVP for {voornaam} {achternaam}", rsvp.Voornaam, rsvp.Achternaam);
 
