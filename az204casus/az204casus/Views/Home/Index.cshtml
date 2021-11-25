@@ -2,13 +2,25 @@
     ViewData["Title"] = "Home Page";
 }
 @model az204casus.Models.CreateRsvpModel;
+@using az204casus.Controllers;
 
-    <div class="text-center">
-        <h1 class="display-4">Welcome</h1>
-        <form asp-controller="Rsvp" asp-action="Submit" method="post">
-            <input asp-for="Voornaam" placeholder="Voornaam"/>
-            <input asp-for="Achternaam" placeholder="Achternaam" />
 
-            <button type="submit">Reserveren</button>
-        </form>
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <form asp-controller="Rsvp" asp-action="Submit" method="post" enctype="multipart/form-data">
+        <input asp-for="Voornaam" placeholder="Voornaam" />
+        <input asp-for="Achternaam" placeholder="Achternaam" />
+
+        <input id="foto" name="foto" type="file" accept="image/jpeg" />
+
+        <button type="submit">Reserveren</button>
+    </form>
+
+    @foreach(Reservation r in ViewBag.Reservations)
+    {
+    <div>
+        @r.Firstname
+        <img src="@Url.Content("https://rsvpstorageaccount.blob.core.windows.net/thumb/" + @r.ThumbUrl)" />
     </div>
+    }
+</div>
