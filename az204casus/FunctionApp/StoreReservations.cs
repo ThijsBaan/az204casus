@@ -30,7 +30,7 @@ namespace FunctionApp
                 Firstname = value.Split(";")[0],
                 Lastname = value.Split(";")[1],
                 PhotoUrl = $"{value}.jpg",
-                ThumbUrl = $"{value}_th.jpg"
+                ThumbUrl = $"{value}.jpg"
             });
         }
     }
