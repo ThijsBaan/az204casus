@@ -68,7 +68,7 @@ namespace RsvpWebApi.Controllers
                     "ReservationCreatedEvent",
                     "FunctionApp.ReservationCreatedEvent",
                     "1.0",
-                    JsonConvert.SerializeObject(new ReservationCreatedEvent() { ReserverationId = id })
+                    new ReservationCreatedEvent() { ReserverationId = id }
                     )
                 );
         }
@@ -89,7 +89,7 @@ namespace RsvpWebApi.Controllers
                     "ImageCreatedEvent",
                     "FunctionApp.ImageCreatedEvent",
                     "1.0",
-                    JsonConvert.SerializeObject(new ImageCreatedEvent() { Path = path })
+                    new ImageCreatedEvent() { Path = path }
                     )
                 );
         }
