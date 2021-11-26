@@ -20,6 +20,8 @@ namespace RsvpWebApi
         {
             services.AddControllers();
 
+            services.AddApplicationInsightsTelemetry();
+
             services.AddSwaggerGen();
         }
 

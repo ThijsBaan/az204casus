@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using StackExchange.Redis;
+using Microsoft.ApplicationInsights;
 
 namespace RsvpWebApi.Controllers
 {
@@ -20,10 +21,12 @@ namespace RsvpWebApi.Controllers
     {
 
         private readonly ILogger<RsvpController> _logger;
+        private readonly TelemetryClient _telemetryClient;
 
-        public RsvpController(ILogger<RsvpController> logger)
+        public RsvpController(ILogger<RsvpController> logger, TelemetryClient telemetryClient)
         {
             _logger = logger;
+            _telemetryClient = telemetryClient;
         }
 
         [HttpGet]
@@ -37,6 +40,8 @@ namespace RsvpWebApi.Controllers
             var redisReturnValue = redisDb.ListRange("reservations");
 
             Console.WriteLine(redisReturnValue);
+
+            _telemetryClient.TrackEvent("ReservationsRetrieved");
 
             List<Reservation> reservations = new List<Reservation>(); 
             foreach (var stringValue in redisReturnValue)
@@ -55,6 +60,8 @@ namespace RsvpWebApi.Controllers
             var connectionString = "DefaultEndpointsProtocol=https;AccountName=rsvpstorageaccount;AccountKey=JyZyWNsarrgCVX2UZ/gbNW842/4bB438WyAzkUjaijPY3KzbRxz2+I9fL+DzG0eILh1UtIEn1v8ZKNeQyV07Qg==;EndpointSuffix=core.windows.net";
 
             var naam = $"{rsvp.Voornaam};{rsvp.Achternaam}";
+
+            _telemetryClient.TrackEvent("ReservationCreated");
 
             InsertReservation(rsvp, naam);
             UploadImage(rsvp, connectionString, naam);
