@@ -40,7 +40,8 @@ namespace FunctionApp
 
         public MongoService()
         {
-            MongoClientSettings settings = MongoClientSettings.FromUrl(new MongoUrl("mongodb://maxenthijsmongo:XMbqjIVM7FurSW1IuFNZpqHZyyoaFqJHRo0s6PaoKCyHXnTNKA8pxDJDcGptoz9rGxoLEDJlPXZFMBFJDuE0zg==@maxenthijsmongo.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@maxenthijsmongo@"));
+            var connectionString = Environment.GetEnvironmentVariable("mongo-connectionstring", EnvironmentVariableTarget.Process);
+            MongoClientSettings settings = MongoClientSettings.FromUrl(new MongoUrl(connectionString));
             _client = new MongoClient(settings);
         }
 

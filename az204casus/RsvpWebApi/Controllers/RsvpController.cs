@@ -131,6 +131,7 @@ namespace RsvpWebApi.Controllers
         public string Lastname { get; set; }
         public string PhotoUrl { get; set; }
         public string ThumbUrl { get; set; }
+        public DateTime Created { get; set; }
     }
 
 
