@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
+using StackExchange.Redis;
 
 namespace RsvpWebApi.Controllers
 {
@@ -28,10 +29,22 @@ namespace RsvpWebApi.Controllers
         [HttpGet]
         public IEnumerable<Reservation> Get()
         {
-            var db = new MongoService().GetClient().GetDatabase("maxenthijsmongo");
-            IMongoCollection<Reservation> reservations = db.GetCollection<Reservation>("Reservation");
+            //var db = new MongoService().GetClient().GetDatabase("maxenthijsmongo");
+            //IMongoCollection<Reservation> reservations = db.GetCollection<Reservation>("Reservation");
 
-            return reservations.Find(_ => true).ToList();
+            ConnectionMultiplexer redis = ConnectionMultiplexer.Connect("casus-redis-cache.redis.cache.windows.net:6380,password=KznXMu0VH403JmLrX7WuW7wUECePaqhGuAzCaMyMF9A=,ssl=True,abortConnect=False");
+            IDatabase redisDb = redis.GetDatabase();
+            var redisReturnValue = redisDb.ListRange("reservations");
+
+            Console.WriteLine(redisReturnValue);
+
+            List<Reservation> reservations = new List<Reservation>(); 
+            foreach (var stringValue in redisReturnValue)
+            {
+                reservations.Add(JsonConvert.DeserializeObject<Reservation>(stringValue));
+            }
+
+            return reservations;
         }
 
         [HttpPost]
@@ -49,28 +62,37 @@ namespace RsvpWebApi.Controllers
 
         private static void InsertReservation(RsvpModel rsvp, string naam)
         {
-            var db = new MongoService().GetClient().GetDatabase("maxenthijsmongo");
-            IMongoCollection<Reservation> reservations = db.GetCollection<Reservation>("Reservation");
+            //var db = new MongoService().GetClient().GetDatabase("maxenthijsmongo");
+            //IMongoCollection<Reservation> reservations = db.GetCollection<Reservation>("Reservation");
+
+            ConnectionMultiplexer redis = ConnectionMultiplexer.Connect("casus-redis-cache.redis.cache.windows.net:6380,password=KznXMu0VH403JmLrX7WuW7wUECePaqhGuAzCaMyMF9A=,ssl=True,abortConnect=False");
+            IDatabase redisDb = redis.GetDatabase();
 
             string id = Guid.NewGuid().ToString();
-            reservations.InsertOne(new Reservation()
+            var reservation = new Reservation()
             {
                 _id = id,
                 Firstname = rsvp.Voornaam,
                 Lastname = rsvp.Achternaam,
                 PhotoUrl = $"{naam}.jpg",
                 ThumbUrl = $"{naam}.jpg"
-            });
+            };
 
-            EventGridPublisherClient eventGridPublisherClient = CreateEventGridPublisherClient();
-            eventGridPublisherClient.SendEvent(
-                new EventGridEvent(
-                    "ReservationCreatedEvent",
-                    "FunctionApp.ReservationCreatedEvent",
-                    "1.0",
-                    new ReservationCreatedEvent() { ReserverationId = id }
-                    )
-                );
+            //redisDb.StringSet($"reservation:{id}", JsonConvert.SerializeObject(reservation));
+
+            redisDb.ListRightPush("reservations", JsonConvert.SerializeObject(reservation));
+
+            //reservations.InsertOne(reservation);
+
+            //EventGridPublisherClient eventGridPublisherClient = CreateEventGridPublisherClient();
+            //eventGridPublisherClient.SendEvent(
+            //    new EventGridEvent(
+            //        "ReservationCreatedEvent",
+            //        "FunctionApp.ReservationCreatedEvent",
+            //        "1.0",
+            //        new ReservationCreatedEvent() { ReserverationId = id }
+            //        )
+            //    );
         }
 
         private static void UploadImage(RsvpModel rsvp, string connectionString, string naam)
@@ -131,7 +153,6 @@ namespace RsvpWebApi.Controllers
         public string Lastname { get; set; }
         public string PhotoUrl { get; set; }
         public string ThumbUrl { get; set; }
-        public DateTime Created { get; set; }
     }
 
 
